@@ -1,5 +1,7 @@
 import requests
 import json
+from bs4 import BeautifulSoup
+
 
 class VTN_Api():
     def __init__(self, config_file='settings.json'):
@@ -66,10 +68,84 @@ class VTN_Api():
         req_url = self.url + ":" + self.port + "/events"
         return requests.post(req_url, data=data, cookies=self.cookies, headers=headers)
 
+    def update_active_event(self, event_id, payload):
+
+        data = {
+            "event_signal_interval[payload]": payload,
+            "utf8": True,
+            "authenticity_token": self.authenticity_token
+        }
+        get_data = {
+            "utf8": True,
+            "authenticity_token": self.authenticity_token
+        }
+        headers = {
+            'content-type': "multipart/form-data"
+        }
+        req_url = self.url + ":" + self.port + "/events/%d" % int(event_id)
+        r = requests.get(req_url, data=get_data, cookies=self.cookies, headers=headers)
+        soup = BeautifulSoup(r.text, 'html.parser')
+        event_signal = soup.findAll('td', attrs={'class': "actions"})
+        event_signals_id = []
+        for signal in event_signal:
+            event_signals_id.append(signal.find('a').get('href'))
+        req_signal_url = self.url + ":" + self.port + event_signals_id[0]
+        r_signal = requests.get(req_signal_url, data=get_data, cookies=self.cookies, headers=headers)
+        soup_signal = BeautifulSoup(r_signal.text, 'html.parser')
+        payload_record = soup_signal.findAll('tr', attrs={'class': 'record'})
+        payload_id = []
+        if payload_record:
+            payload_id.append(payload_record[1].get('id'))
+        post_url = self.url + ":" + self.port + "/event_signal_intervals/" + payload_id[0].split('_')[-1]
+        return requests.put(post_url, data=data, cookies=self.cookies, headers=headers)
+
+    def query_event(self):
+        if self.authenticity_token == "" or self.cookies == {}:
+            print("Error. Not logged in yet. Run login() first")
+            return
+
+        data = {"authenticity_token": self.authenticity_token}
+        headers = {
+            'content-type': "multipart/form-data"
+        }
+        req_url = self.url + ":" + self.port + "/events"
+        r = requests.get(req_url, data=data, cookies=self.cookies, headers=headers)
+        content = r.content.decode("utf8")
+        start_idx = content.find("<div class=\"form\">")
+        event_id = content[start_idx:]
+        return event_id
+
+    def query_active_event(self, first_date_string, last_date_string, status, commit):
+        if self.authenticity_token == "" or self.cookies == {}:
+            print("Error. Not logged in yet. Run login() first")
+            return
+
+        data = {"authenticity_token": self.authenticity_token,
+                "utf8": True,
+                "status_ids[]": status,
+                "comment_string": "",
+                "first_date_string": first_date_string,
+                "last_date_string": last_date_string,
+                "commit": commit}
+        headers = {
+            'content-type': "multipart/form-data"
+        }
+        req_url = self.url + ":" + self.port + "/events"
+        r = requests.get(req_url, data=data, cookies=self.cookies, headers=headers)
+        soup = BeautifulSoup(r.text, 'html.parser')
+        event_cards = soup.findAll('div', attrs={'class': 'card-actions'})
+        event_id = []
+        if event_cards:
+            for card in event_cards:
+                event_id.append(card.find('a').get('href').split('/')[2])
+        else:
+            pass
+        return event_id
+
     def create_events(self, events):
 
         if self.authenticity_token == "" or self.cookies == {}:
-            print ("Error. Not logged in yet. Run login() first")
+            print("Error. Not logged in yet. Run login() first")
             return
 
         if type(events) == list:
@@ -80,7 +156,7 @@ class VTN_Api():
                     signal_name_id=event["signal_name_id"],
                     signal_type_id=event["signal_type_id"],
                     dtstart_str=event["dtstart_str"],
-                    duration=int(event["duration"].seconds/60.0),
+                    duration=int(event["duration"]/60.0),
                     market_context_id=event["market_context_id"],
                     priority=event["priority"],
                     response_required_type_id=event["response_required_type_id"],
@@ -95,7 +171,7 @@ class VTN_Api():
                 signal_name_id=event["signal_name_id"],
                 signal_type_id=event["signal_type_id"],
                 dtstart_str=event["dtstart_str"],
-                duration=int(event["duration"].seconds/60.0),
+                duration=int(event["duration"]/60.0),
                 market_context_id=event["market_context_id"],
                 priority=event["priority"],
                 response_required_type_id=event["response_required_type_id"],
@@ -117,7 +193,7 @@ class VTN_Api():
         headers = {
             'content-type': "multipart/form-data"
         }
-        req_url = self.url + ":" + self.port + "/events/%d/add_targets" % event_id
+        req_url = self.url + ":" + self.port + "/events/%d/add_targets" % int(event_id)
         return requests.put(req_url, data=data, cookies=self.cookies, headers=headers)
 
     def publish_event(self, event_id):
@@ -128,7 +204,7 @@ class VTN_Api():
         headers = {
             'content-type': "multipart/form-data"
         }
-        req_url = self.url + ":" + self.port + "/events/%d/publish" % event_id
+        req_url = self.url + ":" + self.port + "/events/%d/publish" % int(event_id)
         return requests.put(req_url, data=data, cookies=self.cookies, headers=headers)
 
     def logout(self):
