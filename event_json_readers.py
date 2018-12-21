@@ -104,8 +104,18 @@ def main5MinsDR():
     print("Sending to API, waiting for an answer ...")
     vtn_api_obj.login()
     # query active DR event
-    current_date = datetime.strftime(datetime.now(), "%a, %b %d %Y")
-    active_event_list = vtn_api_obj.query_active_event(current_date, current_date, "4", "Search")
+    current_date = datetime.strftime(datetime.utcnow(), "%a, %b %d %Y")
+    active_event_list = vtn_api_obj.query_event(current_date, current_date, "4", "Search")
+    # query completed DR event
+    completed_event_list = vtn_api_obj.query_event(current_date, current_date, "5", "Search")
+
+    if completed_event_list:
+        for event_id in completed_event_list:
+            vtn_api_obj.delete_event(event_id=event_id)
+            print('Delete completed event', event_id)
+    else:
+        print("No completed event on the current day")
+
 
     if active_event_list:
         for event_id in active_event_list:
@@ -117,7 +127,7 @@ def main5MinsDR():
 
     else:
         # Send the list of event
-        name = 4
+        name = 3
         type_sig = 4
 
         start = datetime.strftime(datetime.now(), "%m/%d/%y %H:%M")
@@ -129,17 +139,17 @@ def main5MinsDR():
         print(list_dr_events)
 
         vtn_api_obj.create_events(list_dr_events)
-        active_event_list = vtn_api_obj.query_active_event(current_date, current_date, "4", "Search")
+        active_event_list = vtn_api_obj.query_event(current_date, current_date, "4", "Search")
         if active_event_list:
             for event_id in active_event_list:
                 vtn_api_obj.add_target_to_event(event_id=event_id, target_id=INTWINE_VEN_TARGET_ID)
                 vtn_api_obj.publish_event(event_id=event_id)
-        print('Create new active event', event_id)
+                print('Create new active event', event_id)
 
 
 if __name__ == '__main__':
     # run main function
     main5MinsDR()
     scheduler = BlockingScheduler()
-    scheduler.add_job(main5MinsDR, 'interval', minutes=5)
+    scheduler.add_job(main5MinsDR, 'interval', minutes=1)
     scheduler.start()

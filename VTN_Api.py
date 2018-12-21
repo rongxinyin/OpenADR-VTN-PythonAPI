@@ -99,23 +99,23 @@ class VTN_Api():
         post_url = self.url + ":" + self.port + "/event_signal_intervals/" + payload_id[0].split('_')[-1]
         return requests.put(post_url, data=data, cookies=self.cookies, headers=headers)
 
-    def query_event(self):
-        if self.authenticity_token == "" or self.cookies == {}:
-            print("Error. Not logged in yet. Run login() first")
-            return
+    # def query_event(self):
+    #     if self.authenticity_token == "" or self.cookies == {}:
+    #         print("Error. Not logged in yet. Run login() first")
+    #         return
+    #
+    #     data = {"authenticity_token": self.authenticity_token}
+    #     headers = {
+    #         'content-type': "multipart/form-data"
+    #     }
+    #     req_url = self.url + ":" + self.port + "/events"
+    #     r = requests.get(req_url, data=data, cookies=self.cookies, headers=headers)
+    #     content = r.content.decode("utf8")
+    #     start_idx = content.find("<div class=\"form\">")
+    #     event_id = content[start_idx:]
+    #     return event_id
 
-        data = {"authenticity_token": self.authenticity_token}
-        headers = {
-            'content-type': "multipart/form-data"
-        }
-        req_url = self.url + ":" + self.port + "/events"
-        r = requests.get(req_url, data=data, cookies=self.cookies, headers=headers)
-        content = r.content.decode("utf8")
-        start_idx = content.find("<div class=\"form\">")
-        event_id = content[start_idx:]
-        return event_id
-
-    def query_active_event(self, first_date_string, last_date_string, status, commit):
+    def query_event(self, first_date_string, last_date_string, status, commit):
         if self.authenticity_token == "" or self.cookies == {}:
             print("Error. Not logged in yet. Run login() first")
             return
@@ -195,6 +195,17 @@ class VTN_Api():
         }
         req_url = self.url + ":" + self.port + "/events/%d/add_targets" % int(event_id)
         return requests.put(req_url, data=data, cookies=self.cookies, headers=headers)
+
+    def delete_event(self, event_id):
+        data = {
+            "utf8": True,
+            "authenticity_token": self.authenticity_token
+        }
+        headers = {
+            'content-type': "multipart/form-data"
+        }
+        req_url = self.url + ":" + self.port + "/events/%d" % int(event_id)
+        return requests.delete(req_url, cookies=self.cookies, headers=headers)
 
     def publish_event(self, event_id):
         data = {
