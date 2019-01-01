@@ -1,3 +1,4 @@
+from __future__ import division
 import json
 from enum import Enum
 from VTN_Api import VTN_Api
