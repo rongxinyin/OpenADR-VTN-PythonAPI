@@ -152,5 +152,5 @@ if __name__ == '__main__':
     # run main function
     main5MinsDR()
     scheduler = BlockingScheduler()
-    scheduler.add_job(main5MinsDR, 'interval', minutes=1)
+    scheduler.add_job(main5MinsDR, 'interval', minutes=5)
     scheduler.start()
