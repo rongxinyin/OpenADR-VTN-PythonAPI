@@ -6,6 +6,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 import random
 from datetime import datetime, timedelta
 import pytz
+import pandas as pd
 
 # EVENT_FILENAME = 'test/json_signal.json'
 VTN_API_CONFIG_FILE = 'settings.json'
