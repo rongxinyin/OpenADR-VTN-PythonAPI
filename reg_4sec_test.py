@@ -166,7 +166,7 @@ def main4secDR():
     if active_event_list:
         for event_id in active_event_list:
             # payload = random.randint(1, 101) / 100
-            payload = signal.iloc[signal.index.get_loc(datetime.now(), method='nearest')]['abs_signal']
+            payload = signal.iloc[signal.index.get_loc(datetime.now(), method='nearest')]['abs_signal']/100
             print(payload)
             vtn_api_obj.update_active_event(event_id=event_id, payload=payload)
             vtn_api_obj.add_target_to_event(event_id=event_id, target_id=INTWINE_VEN_TARGET_ID)
