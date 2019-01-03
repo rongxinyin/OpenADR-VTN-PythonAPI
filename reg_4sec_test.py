@@ -201,7 +201,7 @@ if __name__ == '__main__':
     signal.columns = ['date', 'signal']
     signal['abs_signal'] = signal.signal + 50
     # one hour test
-    rng = pd.date_range('1/2/2019 15:30:00', periods=3600, freq='S')
+    rng = pd.date_range('1/2/2019 16:30:00', periods=3600, freq='S')
     signal.index = rng
 
     # run main function
